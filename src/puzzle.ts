@@ -16,7 +16,8 @@
 // 只要 a=cells[0], b=cells[1], d=cells[3], e=cells[4] 自由設定，其餘
 // 由加法推導，則所有等式必然成立（因為 (a+d)+(b+e) = (a+b)+(d+e)）。
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+// 難度以「最大總和（右下角的 i 值上限）」分級
+export type Difficulty = 20 | 50 | 100;
 
 export interface Puzzle {
   solution: number[];      // 長度 9，完整解
@@ -40,30 +41,27 @@ function pickBlanks(count: number, rng: () => number = Math.random): boolean[] {
   return Array.from({ length: 9 }, (_, i) => chosen.has(i));
 }
 
-export function generatePuzzle(difficulty: Difficulty = 'easy'): Puzzle {
-  // 難度只影響數字範圍與空格數
-  const ranges: Record<Difficulty, [number, number]> = {
-    easy: [1, 5],     // 結果最大 20，適合低年級
-    medium: [1, 9],   // 結果最大 36
-    hard: [2, 12],    // 結果最大 48
-  };
-  const blanksCount: Record<Difficulty, number> = {
-    easy: 3,
-    medium: 4,
-    hard: 5,
-  };
+export function generatePuzzle(difficulty: Difficulty = 20): Puzzle {
+  // 單格上限大致 = maxSum / 4，再保險用迴圈把超過 maxSum 的丟掉重抽
+  const cellMax: Record<Difficulty, number> = { 20: 5, 50: 12, 100: 25 };
+  const blanksCount: Record<Difficulty, number> = { 20: 3, 50: 4, 100: 5 };
 
-  const [lo, hi] = ranges[difficulty];
-  const a = randInt(lo, hi);
-  const b = randInt(lo, hi);
-  const d = randInt(lo, hi);
-  const e = randInt(lo, hi);
+  const hi = cellMax[difficulty];
+  const maxSum = difficulty;
+  let a = 0, b = 0, d = 0, e = 0;
+  for (let tries = 0; tries < 200; tries++) {
+    a = randInt(1, hi);
+    b = randInt(1, hi);
+    d = randInt(1, hi);
+    e = randInt(1, hi);
+    if (a + b + d + e <= maxSum) break;
+  }
 
   const c = a + b;
   const f = d + e;
   const g = a + d;
   const h = b + e;
-  const i = c + f; // = g + h
+  const i = c + f; // = g + h = a+b+d+e
 
   const solution = [a, b, c, d, e, f, g, h, i];
   const blanks = pickBlanks(blanksCount[difficulty]);

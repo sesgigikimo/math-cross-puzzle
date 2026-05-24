@@ -20,8 +20,8 @@ function nextBlank(puzzle: Puzzle, current: number): number | null {
 }
 
 export default function App() {
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
-  const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle('easy'));
+  const [difficulty, setDifficulty] = useState<Difficulty>(20);
+  const [puzzle, setPuzzle] = useState<Puzzle>(() => generatePuzzle(20));
   const [inputs, setInputs] = useState<(number | null)[]>(() => Array(9).fill(null));
   const [selected, setSelected] = useState<number | null>(() => firstBlank(puzzle));
   const [submitted, setSubmitted] = useState(false);
@@ -134,7 +134,7 @@ export default function App() {
       </header>
 
       <div className="flex items-center gap-3 flex-wrap justify-center">
-        {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
+        {([20, 50, 100] as Difficulty[]).map((d) => (
           <button
             key={d}
             onClick={() => {
@@ -148,7 +148,7 @@ export default function App() {
                 : 'bg-white text-leaf-700 border-leaf-300 hover:bg-leaf-50',
             ].join(' ')}
           >
-            {d === 'easy' ? '簡單' : d === 'medium' ? '中等' : '困難'}
+            總和 ≤ {d}
           </button>
         ))}
         <div className="ml-2 px-4 py-2 rounded-full bg-yellow-100 border-2 border-yellow-300 font-bold text-yellow-700">
