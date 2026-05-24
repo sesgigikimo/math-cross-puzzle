@@ -77,27 +77,27 @@ export default function App() {
     [puzzle, selected],
   );
 
-  // 計算目前 selected 空格的提示：找包含它的等式（橫/縱），
-  // 若另兩格都已知 → 顯示如何算出它（z-y=? 或 x+y=?）
-  const hint = useMemo<string | null>(() => {
-    if (selected === null) return null;
+  // 計算目前 selected 空格的提示：橫向、縱向各自能算的都列出
+  const hints = useMemo<string[]>(() => {
+    if (selected === null) return [];
     const knownValue = (idx: number): number | null => {
-      if (!puzzle.blanks[idx]) return puzzle.solution[idx]; // fixed
-      return inputs[idx]; // blank：可能已填或 null
+      if (!puzzle.blanks[idx]) return puzzle.solution[idx];
+      return inputs[idx];
     };
     const row = Math.floor(selected / 3);
     const col = selected % 3;
     const rowEq: [number, number, number] = [row * 3, row * 3 + 1, row * 3 + 2];
     const colEq: [number, number, number] = [col, col + 3, col + 6];
+    const result: string[] = [];
     for (const [x, y, z] of [rowEq, colEq]) {
       const xv = knownValue(x);
       const yv = knownValue(y);
       const zv = knownValue(z);
-      if (selected === x && yv !== null && zv !== null) return `${zv} − ${yv} = ?`;
-      if (selected === y && xv !== null && zv !== null) return `${zv} − ${xv} = ?`;
-      if (selected === z && xv !== null && yv !== null) return `${xv} + ${yv} = ?`;
+      if (selected === x && yv !== null && zv !== null) result.push(`${zv} − ${yv} = ?`);
+      else if (selected === y && xv !== null && zv !== null) result.push(`${zv} − ${xv} = ?`);
+      else if (selected === z && xv !== null && yv !== null) result.push(`${xv} + ${yv} = ?`);
     }
-    return null;
+    return result;
   }, [selected, puzzle, inputs]);
 
   useEffect(() => {
@@ -193,10 +193,16 @@ export default function App() {
               >
                 🔄 換一題
               </button>
-              {hint && (
+              {hints.length > 0 && (
                 <div className="px-4 py-3 rounded-2xl bg-yellow-50 border-2 border-yellow-300 text-center w-full">
                   <div className="text-yellow-700 text-xs font-bold mb-1">💡 小提示</div>
-                  <div className="text-leaf-700 text-2xl font-black tracking-wider">{hint}</div>
+                  <div className="flex flex-col gap-1">
+                    {hints.map((h, i) => (
+                      <div key={i} className="text-leaf-700 text-2xl font-black tracking-wider">
+                        {h}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
               {submitted && (
