@@ -77,6 +77,29 @@ export default function App() {
     [puzzle, selected],
   );
 
+  // 計算目前 selected 空格的提示：找包含它的等式（橫/縱），
+  // 若另兩格都已知 → 顯示如何算出它（z-y=? 或 x+y=?）
+  const hint = useMemo<string | null>(() => {
+    if (selected === null) return null;
+    const knownValue = (idx: number): number | null => {
+      if (!puzzle.blanks[idx]) return puzzle.solution[idx]; // fixed
+      return inputs[idx]; // blank：可能已填或 null
+    };
+    const row = Math.floor(selected / 3);
+    const col = selected % 3;
+    const rowEq: [number, number, number] = [row * 3, row * 3 + 1, row * 3 + 2];
+    const colEq: [number, number, number] = [col, col + 3, col + 6];
+    for (const [x, y, z] of [rowEq, colEq]) {
+      const xv = knownValue(x);
+      const yv = knownValue(y);
+      const zv = knownValue(z);
+      if (selected === x && yv !== null && zv !== null) return `${zv} − ${yv} = ?`;
+      if (selected === y && xv !== null && zv !== null) return `${zv} − ${xv} = ?`;
+      if (selected === z && xv !== null && yv !== null) return `${xv} + ${yv} = ?`;
+    }
+    return null;
+  }, [selected, puzzle, inputs]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // 1-4 對應四個選項
@@ -170,6 +193,12 @@ export default function App() {
               >
                 🔄 換一題
               </button>
+              {hint && (
+                <div className="px-4 py-3 rounded-2xl bg-yellow-50 border-2 border-yellow-300 text-center w-full">
+                  <div className="text-yellow-700 text-xs font-bold mb-1">💡 小提示</div>
+                  <div className="text-leaf-700 text-2xl font-black tracking-wider">{hint}</div>
+                </div>
+              )}
               {submitted && (
                 <div className="text-red-600 font-bold text-lg animate-shake text-center">
                   再試試看！🔍
